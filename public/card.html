@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クラリネット協会 - 会員証</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="membership-card">
+            <div class="card-header">
+                <div class="logo">
+                    <h1>クラリネット協会</h1>
+                    <p>Clarinet Association</p>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="member-info">
+                    <div class="info-row">
+                        <span class="label">氏名</span>
+                        <span class="value" id="memberName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">会員番号</span>
+                        <span class="value member-number" id="memberNumber">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">有効期限</span>
+                        <span class="value" id="expiryDate">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">支払い状況</span>
+                        <span class="value payment-status" id="paymentStatus">-</span>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="qr-placeholder">
+                        <p>会員証QRコード</p>
+                        <div id="qrCode"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button id="logoutBtn" class="btn-secondary">ログアウト</button>
+                <button id="printBtn" class="btn-primary">印刷</button>
+            </div>
+        </div>
+
+        <div id="loadingMessage" class="loading-message">
+            <p>会員情報を読み込んでいます...</p>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+
+    <script src="js/card.js"></script>
+</body>
+</html>

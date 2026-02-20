@@ -1,0 +1,8 @@
+node_modules/
+.env
+data/members.json
+data/sikuminet.csv
+google-service-account.json
+google-service-account.*.json
+*.log
+.DS_Store
