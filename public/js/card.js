@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 会員情報を表示
             document.getElementById('memberName').textContent = memberData.name || '-';
             document.getElementById('memberNumber').textContent = memberData.memberNumber || '-';
+            document.getElementById('memberType').textContent = memberData.memberType || '-';
             document.getElementById('expiryDate').textContent = formatDate(memberData.expiryDate) || '-';
             
             // 支払い状況

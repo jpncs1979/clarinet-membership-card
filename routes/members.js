@@ -39,6 +39,7 @@ router.get('/info', requireAuth, async (req, res) => {
     res.json({
       name: member.name,
       memberNumber: member.memberNumber,
+      memberType: member.memberType || '',
       email: member.email,
       paymentStatus: member.paymentStatus,
       paymentDate: member.paymentDate,
