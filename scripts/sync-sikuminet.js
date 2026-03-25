@@ -1,7 +1,5 @@
 const fs = require('fs').promises;
-const path = require('path');
-
-const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
+const { MEMBERS_FILE } = require('../lib/membersDataPath');
 
 /**
  * シクミネットから会員情報を同期するスクリプト

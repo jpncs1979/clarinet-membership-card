@@ -2,6 +2,8 @@
 
 この手順に従うと、会員証システムをインターネット上で公開し、**どこからでもアクセスできる**ようになります。
 
+> **詳細チェックリスト**: 本番デプロイの全体像は [本番デプロイチェックリスト.md](./本番デプロイチェックリスト.md) を参照してください。
+
 ---
 
 ## 📋 事前準備
@@ -93,26 +95,24 @@ git push -u origin main
 
 | Key | Value |
 |-----|-------|
-| `SESSION_SECRET` | ランダムな文字列（例：`your-secret-key-here-2024-random-string`） |
-| `PORT` | `10000`（Renderが自動で設定するので、この値は無視されます） |
-| `GOOGLE_SERVICE_ACCOUNT_KEY_FILE` | `google-service-account.json` |
-| `GOOGLE_DRIVE_FILE_ID` | （DriveのCSVファイルID） |
-| `DRIVE_SYNC_INTERVAL_MINUTES` | `10`（10分ごとに自動同期） |
+| `SESSION_SECRET` | ランダムな文字列（例：`a8f3c9e2b1d4567890abcdef12345678`） |
+| `NODE_ENV` | `production` |
+| `GOOGLE_SERVICE_ACCOUNT_KEY` | 鍵JSONの**全文**（下記3-3参照） |
+| `GOOGLE_DRIVE_FILE_ID` | `1kj501izC4k85SUUcF5XvQXA5dOVM7q8q` |
+| `DRIVE_SYNC_INTERVAL_MINUTES` | `10` |
 
-### 3-3. サービスアカウント鍵をアップロード
+> **注意**: Render ではファイルを配置できないため、`GOOGLE_SERVICE_ACCOUNT_KEY` に JSON 全文を設定します。`GOOGLE_SERVICE_ACCOUNT_KEY_FILE` は**不要**です。
 
-**方法A: 環境変数として設定（推奨）**
+### 3-3. サービスアカウント鍵（GOOGLE_SERVICE_ACCOUNT_KEY）の設定
 
-1. ローカルの `google-service-account.json` を開く
-2. 中身をすべてコピー
+1. ローカルの `google-service-account.json` をメモ帳で開く
+2. 中身を**すべて**コピー（`{` から `}` まで）
 3. Render の環境変数で：
-   - **Key**: `GOOGLE_SERVICE_ACCOUNT_KEY`（新規追加）
-   - **Value**: コピーしたJSONをそのまま貼り付け
-4. `server.js` を修正して、環境変数から読み込むようにする（後述）
+   - **Key**: `GOOGLE_SERVICE_ACCOUNT_KEY`
+   - **Value**: コピーしたJSONを**そのまま貼り付け**
+4. 同時に、Google Drive の CSV を**サービスアカウントのメール（`client_email`）に共有**することを忘れずに
 
-**方法B: GitHubにアップロード（非推奨）**
-
-セキュリティ上、GitHubに鍵ファイルをアップロードするのは避けてください。
+> **セキュリティ**: 鍵はGitHubにアップロードしないでください。`.gitignore` に `google-service-account.json` が含まれています。
 
 ---
 

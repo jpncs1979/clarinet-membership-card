@@ -3,9 +3,9 @@ const path = require('path');
 const { parse } = require('csv-parse/sync');
 const crypto = require('crypto');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const CSV_FILE = path.join(DATA_DIR, 'sikuminet.csv');
-const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
+const { MEMBERS_FILE, MEMBERS_CSV_FILE } = require('../lib/membersDataPath');
+const { stableMemberId } = require('../lib/stableMemberId');
+const CSV_FILE = MEMBERS_CSV_FILE;
 
 // 誕生日をハッシュ化
 function hashBirthday(birthday) {
@@ -148,7 +148,7 @@ async function run() {
       const memberNumber = idx.memberNumber >= 0 ? raw(idx.memberNumber) : `CL-${new Date().getFullYear()}-${String(i + 1).padStart(3, '0')}`;
 
       members.push({
-        id: `member-${Date.now()}-${i}`,
+        id: stableMemberId(memberNumber, email),
         name,
         memberNumber,
         email: email.toLowerCase(),

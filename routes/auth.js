@@ -1,15 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs').promises;
-const path = require('path');
 const crypto = require('crypto');
+const { MEMBERS_FILE } = require('../lib/membersDataPath');
 
-// 会員データファイルのパス
-const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
-
-// 誕生日をハッシュ化して比較（セキュリティのため）
+// 誕生日をハッシュ化して比較（importSikuminetCsv と同じ規則）
 function hashBirthday(birthday) {
-  return crypto.createHash('sha256').update(birthday).digest('hex');
+  const str = String(birthday).trim();
+  if (!str) return '';
+  return crypto.createHash('sha256').update(str).digest('hex');
 }
 
 // 会員データを読み込む
@@ -49,8 +48,8 @@ router.post('/login', async (req, res) => {
 
     // メールアドレスと誕生日で会員を検索
     const birthdayHash = hashBirthday(birthday);
-    const member = members.find(m => 
-      m.email.toLowerCase() === email.toLowerCase() && 
+    const member = members.find(m =>
+      String(m.email || '').toLowerCase() === email.toLowerCase() &&
       m.birthdayHash === birthdayHash
     );
 
@@ -72,6 +71,7 @@ router.post('/login', async (req, res) => {
     req.session.memberId = member.id;
     req.session.memberName = member.name;
     req.session.memberNumber = member.memberNumber;
+    req.session.memberEmail = member.email;
 
     res.json({ 
       success: true, 

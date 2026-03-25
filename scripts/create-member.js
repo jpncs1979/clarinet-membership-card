@@ -1,9 +1,8 @@
 const fs = require('fs').promises;
-const path = require('path');
 const crypto = require('crypto');
 const readline = require('readline');
-
-const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
+const { MEMBERS_FILE } = require('../lib/membersDataPath');
+const { stableMemberId } = require('../lib/stableMemberId');
 
 // 誕生日をハッシュ化
 function hashBirthday(birthday) {
@@ -49,11 +48,12 @@ async function createMember() {
     const sikumiNetId = await question('シクミネットID (任意): ') || '';
 
     const data = await loadMembers();
+    const emailNorm = email.trim().toLowerCase();
     const newMember = {
-      id: `member-${Date.now()}`,
+      id: stableMemberId(memberNumber.trim(), emailNorm),
       name: name.trim(),
       memberNumber: memberNumber.trim(),
-      email: email.trim().toLowerCase(),
+      email: emailNorm,
       birthdayHash: hashBirthday(birthday.trim()),
       paymentStatus: paymentStatus.trim(),
       paymentDate: paymentDate.trim(),

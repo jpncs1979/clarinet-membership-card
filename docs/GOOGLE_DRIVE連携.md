@@ -45,26 +45,24 @@ Google Cloud Consoleで新規プロジェクトを作成します。
 ## 4. このシステム側の設定（.env）
 
 ### 4-1. .env ファイルを開く
-1. エクスプローラーで `D:\tomoh\Documents\vsc` フォルダを開く
+1. エクスプローラーでプロジェクトフォルダ（clarinet-membership-card）を開く
 2. **`.env`** という名前のファイルを探す（先頭にドットが付きます）
 3. メモ帳や Cursor（VS Code）で開く  
    - 右クリック → 「プログラムから開く」→ メモ帳 でもOK
 
 ### 4-2. サービスアカウントの鍵ファイルを置く
-1. Google Cloud でダウンロードした **JSON鍵** を、次の場所にコピーする：  
-   `D:\tomoh\Documents\vsc\google-service-account.json`  
-   （ファイル名はそのままでOK。別名にした場合は 4-3 でその名前にする）
-2. このファイルが `D:\tomoh\Documents\vsc` フォルダ内にあることを確認する
+1. Google Cloud でダウンロードした **JSON鍵** を、プロジェクト直下に `google-service-account.json` として保存
+2. `server.js` と同じフォルダにあることを確認する
 
 ### 4-3. .env に2行追加する
 `.env` の **いちばん下** に、次の2行を追加する（既にある行はそのまま残す）。
 
 ```
-GOOGLE_SERVICE_ACCOUNT_KEY_FILE=D:\tomoh\Documents\vsc\google-service-account.json
+GOOGLE_SERVICE_ACCOUNT_KEY_FILE=google-service-account.json
 GOOGLE_DRIVE_FILE_ID=ここにファイルIDを貼る
 ```
 
-- 1行目：鍵ファイルの**フルパス**。別の場所に置いた場合はそのパスに書き換える
+- 1行目：プロジェクト直下に置いた場合は `google-service-account.json` でOK。フルパスでも可
 - 2行目：`ここにファイルIDを貼る` の部分を、**DriveのCSVファイルID** に置き換える（下記）
 
 ### ファイルIDの取り方
@@ -90,7 +88,7 @@ GOOGLE_DRIVE_FILE_ID=1ABCdefGHI123
 PowerShellで次を実行します。
 
 ```powershell
-cd "D:\tomoh\Documents\vsc"
+cd "プロジェクトのパス"
 npm install
 node scripts/sync-google-drive-csv.js
 ```

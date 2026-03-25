@@ -3,61 +3,44 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs').promises;
+const { MEMBERS_FILE, MEMBERS_JSON_BASENAME } = require('./lib/membersDataPath');
 require('dotenv').config();
 
-const { syncFromGoogleDrive } = require('./lib/driveSync');
+const { syncMembersCsvOnStartup, startMembersCsvWatch } = require('./lib/watchMembersCsv');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Google Drive 自動同期設定
-const SYNC_INTERVAL_MINUTES = parseInt(process.env.DRIVE_SYNC_INTERVAL_MINUTES || '10', 10);
-const SYNC_INTERVAL_MS = SYNC_INTERVAL_MINUTES * 60 * 1000;
+let membersCsvWatch = null;
 
-// サーバー起動時に1回実行 + 定期的に実行
-let syncTimer = null;
-
-async function performSync() {
-  const result = await syncFromGoogleDrive();
-  if (result.success) {
-    console.log(`[Drive自動同期] 成功: ${result.importedCount}件をインポートしました (${result.timestamp})`);
-  } else {
-    // 環境変数未設定の場合は警告のみ（手動CSV使用時は正常）
-    if (result.reason === '環境変数が設定されていません') {
-      console.log('[Drive自動同期] スキップ: Google Drive連携が設定されていません（手動CSV使用時は正常です）');
-    } else {
-      console.warn(`[Drive自動同期] 失敗: ${result.reason}`);
-    }
-  }
+// 本番（Render 等）ではリバースプロキシ経由の HTTPS を信頼（req.secure / Cookie の判定に必要）
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
 }
 
-// 初回実行（起動後30秒待ってから）
-setTimeout(() => {
-  performSync();
-}, 30000);
-
-// 定期実行を開始
-if (SYNC_INTERVAL_MS > 0) {
-  syncTimer = setInterval(performSync, SYNC_INTERVAL_MS);
-  console.log(`[Drive自動同期] ${SYNC_INTERVAL_MINUTES}分ごとに自動同期します`);
-}
-
-// ミドルウェア設定
+// ミドルウェア設定（セッションは static より前に置く）
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
 
-// セッション設定
+// secure: true 固定だと、NODE_ENV=production のまま http://localhost で Cookie が届かず
+// ログイン直後に /card へ飛んでもセッションが無く、またログイン画面に戻る。
 app.use(session({
   secret: process.env.SESSION_SECRET || 'clarinet-association-secret-key',
   resave: false,
   saveUninitialized: false,
+  rolling: true,
   cookie: {
-    secure: false, // HTTPSの場合はtrueに変更
-    maxAge: 24 * 60 * 60 * 1000 // 24時間
+    secure: 'auto',
+    sameSite: 'lax',
+    httpOnly: true,
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
+
+app.use(express.static('public'));
 
 // ルート設定
 const authRoutes = require('./routes/auth');
@@ -89,22 +72,34 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(`サーバーがポート ${PORT} で起動しました`);
   console.log(`http://localhost:${PORT} でアクセスできます`);
+  await syncMembersCsvOnStartup();
+  membersCsvWatch = startMembersCsvWatch();
+  try {
+    const raw = await fs.readFile(MEMBERS_FILE, 'utf8');
+    const n = JSON.parse(raw).members?.length ?? 0;
+    if (n === 0) {
+      console.warn(`[会員データ] ${MEMBERS_JSON_BASENAME} に会員が0件です。data の CSV を更新するか import スクリプトを実行してください`);
+    }
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      console.warn(`[会員データ] data/${MEMBERS_JSON_BASENAME} がありません。CSV を data に置くか import スクリプトを実行してください`);
+    }
+  }
 });
 
-// サーバー終了時にタイマーをクリーンアップ
 process.on('SIGTERM', () => {
-  if (syncTimer) {
-    clearInterval(syncTimer);
+  if (membersCsvWatch) {
+    membersCsvWatch.close();
   }
   server.close();
 });
 
 process.on('SIGINT', () => {
-  if (syncTimer) {
-    clearInterval(syncTimer);
+  if (membersCsvWatch) {
+    membersCsvWatch.close();
   }
   server.close();
   process.exit(0);

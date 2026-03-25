@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs').promises;
-const path = require('path');
-
-// 会員データファイルのパス
-const MEMBERS_FILE = path.join(__dirname, '..', 'data', 'members.json');
+const { MEMBERS_FILE } = require('../lib/membersDataPath');
 
 // 認証ミドルウェア
 function requireAuth(req, res, next) {
@@ -24,12 +21,34 @@ async function loadMembers() {
   }
 }
 
+function findMemberForSession(members, session) {
+  const byId = members.find((m) => m.id === session.memberId);
+  if (byId) return byId;
+
+  const num = session.memberNumber != null ? String(session.memberNumber).trim() : '';
+  const em = String(session.memberEmail || '').trim().toLowerCase();
+  if (num && em) {
+    const hit = members.find(
+      (m) => String(m.memberNumber).trim() === num && String(m.email || '').toLowerCase() === em
+    );
+    if (hit) return hit;
+  }
+  if (em) {
+    const byEmail = members.find((m) => String(m.email || '').toLowerCase() === em);
+    if (byEmail) return byEmail;
+  }
+  if (num) {
+    return members.find((m) => String(m.memberNumber).trim() === num);
+  }
+  return null;
+}
+
 // 会員情報を取得
 router.get('/info', requireAuth, async (req, res) => {
   try {
     const data = await loadMembers();
     const members = data.members || [];
-    const member = members.find(m => m.id === req.session.memberId);
+    const member = findMemberForSession(members, req.session);
 
     if (!member) {
       return res.status(404).json({ error: '会員情報が見つかりません' });

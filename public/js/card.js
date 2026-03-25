@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         // セッション確認
-        const authCheck = await fetch('/api/auth/check');
+        const authCheck = await fetch('/api/auth/check', { credentials: 'include' });
         const authData = await authCheck.json();
 
         if (!authData.authenticated) {
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 会員情報を取得
-        const response = await fetch('/api/members/info');
+        const response = await fetch('/api/members/info', { credentials: 'include' });
         const memberData = await response.json();
 
         if (response.ok) {
@@ -46,6 +46,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
         const response = await fetch('/api/auth/logout', {
             method: 'POST',
+            credentials: 'include',
         });
 
         if (response.ok) {
